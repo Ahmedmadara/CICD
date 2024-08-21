@@ -1,15 +1,11 @@
-# Use an official base image for Java
-FROM openjdk:17-jdk-slim
-
-# Set the working directory in the container
+FROM maven:3.9.0-eclipse-temurin-17 as build
 WORKDIR /app
+COPY . .
+RUN mvn clean install
 
-# Copy the application JAR file into the container
-COPY target/devops-integration.jar /app/devops-integration.jar
-
-# Expose the port the application will run on
+FROM eclipse-temurin:17.0.6_10-jdk
+WORKDIR /app
+COPY --from=build /app/target/demoapp.jar /app/
 EXPOSE 8080
-
-# Define the command to run the application
-ENTRYPOINT ["java", "-jar", "/app/devops-integration.jar"]
+CMD ["java", "-jar","demoapp.jar"]
 
