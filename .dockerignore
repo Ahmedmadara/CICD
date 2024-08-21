@@ -1,0 +1,4 @@
+# Exclude files and directories
+.git
+node_modules
+*.log
