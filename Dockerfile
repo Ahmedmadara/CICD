@@ -10,5 +10,8 @@ COPY target/my-app.jar /app/my-app.jar
 # Expose the port the application will run on
 EXPOSE 8080
 
+ADD target/devops-integration.jar devops-integration.jar
+
 # Define the command to run the application
-ENTRYPOINT ["java", "-jar", "/app/my-app.jar"]
+ENTRYPOINT ["java", "-jar", "/devops-integration.jar"]
+
