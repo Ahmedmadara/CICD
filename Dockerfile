@@ -1,5 +1,5 @@
 # Stage 1: Build the application
-FROM maven:3.9.0-eclipse-temurin-17 as build
+FROM maven:3.9.0-eclipse-temurin-17 AS build
 WORKDIR /app
 COPY . .
 RUN mvn clean package
