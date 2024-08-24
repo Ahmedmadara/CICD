@@ -1,2 +1,11 @@
-[k8s_master]
-192.168.50.11
+k8smaster:
+  hosts:
+    192.168.50.11:
+
+k8sslave:
+  hosts:
+    192.168.50.12:
+
+jenkins:
+  hosts:
+    192.168.50.10:
