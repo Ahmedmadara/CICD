@@ -9,5 +9,3 @@ FROM tomcat:10-jdk17
 WORKDIR /usr/local/tomcat/webapps
 COPY --from=build /app/target/maven-web.war /usr/local/tomcat/webapps/
 EXPOSE 8080
-
-
