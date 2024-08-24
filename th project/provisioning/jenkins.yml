@@ -1,0 +1,64 @@
+---
+- hosts: all
+  become: yes
+  tasks:
+    - name: Install Jenkins dependencies
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - openjdk-17-jdk
+        - gnupg
+        - curl
+
+    - name: Add Jenkins repository key
+      apt_key:
+        url: https://pkg.jenkins.io/debian/jenkins.io.key
+        state: present
+
+    - name: Add Jenkins repository
+      apt_repository:
+        repo: "deb http://pkg.jenkins.io/debian-stable binary/"
+        state: present
+
+    - name: Install Jenkins
+      apt:
+        name: jenkins
+        state: present
+
+    - name: Start Jenkins service
+      service:
+        name: jenkins
+        state: started
+        enabled: yes
+
+    - name: Install Docker
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - docker.io
+        - docker-compose
+
+    - name: Ensure Docker service is started
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Pull SonarQube Docker image
+      docker_image:
+        name: sonarqube:lts-community
+        source: pull
+
+    - name: Run SonarQube container
+      docker_container:
+        name: sonarqube
+        image: sonarqube:lts-community
+        state: started
+        restart_policy: always
+        ports:
+          - "9000:9000"
+        # You can add volumes if needed
+        # volumes:
+        #   - /path/on/host:/path/in/container

@@ -1,0 +1,86 @@
+pipeline {
+    agent any
+
+    tools {
+        jdk 'jdk17'
+        maven 'maven3'
+    }
+
+    environment {
+        SCANNER_HOME = tool 'sonar-scanner'
+        PATH = "${env.PATH}:/snap/bin"  // Add Trivy installation path to the PATH
+        DOCKER_CREDENTIALS_ID = '20c256eb-b2f4-4068-893d-7e763cf4f17d' // Your Docker credentials ID
+        RELEASE = "1.0.0"
+        DOCKER_USER = "ahmedmadara"
+        APP_NAME = "cicddevops"  // Ensure this is set correctly
+        IMAGE_NAME = "${DOCKER_USER}/${APP_NAME}"
+        IMAGE_TAG = "${RELEASE}-${BUILD_NUMBER}"
+    }
+
+    stages {
+        stage('GIT CHECKOUT') {
+            steps {
+                git branch: 'main', changelog: false, poll: false, url: 'https://github.com/Ahmedmadara/CICD.git'
+            }
+        }
+
+        stage('CODE COMPILE') {
+            steps {
+                sh "mvn clean compile"
+            }
+        }
+
+        stage('SONARQUBE ANALYSIS') {
+            steps {
+                withSonarQubeEnv('sonar-scanner') {
+                    sh '''
+                    $SCANNER_HOME/bin/sonar-scanner \
+                    -Dsonar.projectName=Devops-CICD \
+                    -Dsonar.java.binaries=. \
+                    -Dsonar.projectKey=Devops-CICD
+                    '''
+                }
+            }
+        }
+
+        stage('TRIVY SCAN') {
+            steps {
+                sh "trivy fs --security-checks vuln,config /var/lib/jenkins/workspace/CICD"
+            }
+        }
+
+        stage('CODE BUILD') {
+            steps {
+                sh "mvn clean install"
+            }
+        }
+
+        stage('DOCKER BUILD') {
+            steps {
+                script {
+                    withDockerRegistry(credentialsId: env.DOCKER_CREDENTIALS_ID) {
+                        sh 'docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .'
+                    }
+                }
+            }
+        }
+
+        stage('DOCKER PUSH') {
+            steps {
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', env.DOCKER_CREDENTIALS_ID) {
+                        sh 'docker push ${IMAGE_NAME}:${IMAGE_TAG}'
+                        sh 'docker push ${IMAGE_NAME}:latest'
+                    }
+                }
+            }
+        }
+
+        stage('DEPLOY TO K8S ') {
+            steps {
+                
+                
+            }
+        }
+    }
+}
